@@ -49,9 +49,24 @@ write_xlsx(diamonds, "diamonds.xlsx") #переделал файл в xlsx и п
 #Пустых значений не обнаружено
 #Установлено, что присутствуют нулевые значения в полях X, Y, Z. Это необходимо устранить.
 #Заполнение нулевых значений средними значениями
-data = diamonds %>%
+diamonds = diamonds %>%
   mutate(x = ifelse(x == 0, mean(x[x != 0], na.rm = TRUE), x),
          y = ifelse(y == 0, mean(y[y != 0], na.rm = TRUE), y),
          z = ifelse(z == 0, mean(z[z != 0], na.rm = TRUE), z))
 
+diamonds = diamonds %>% 
+  select(-1)
 
+diamonds = diamonds %>% 
+  filter(!duplicated(.))
+
+str(diamonds) # вывод информации о типе и структуре данных
+summary(diamonds) # вывод сводки данных
+
+#Нормализация данных
+diamonds$carat = scale(diamonds$carat)
+diamonds$depth = scale(diamonds$depth)
+diamonds$table = scale(diamonds$table)
+diamonds$x = scale(diamonds$x)
+diamonds$y = scale(diamonds$y)
+diamonds$z = scale(diamonds$z)
