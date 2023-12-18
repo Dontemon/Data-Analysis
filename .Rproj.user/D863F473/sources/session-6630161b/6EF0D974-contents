@@ -1,0 +1,78 @@
+#
+# This is a Shiny web application. You can run the application by clicking
+# the 'Run App' button above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
+rsconnect::setAccountInfo(name='dontemon', token='B5AB2AC67AC54C9D8295BC9B12EFDEF5', secret='X+Vi02W5gQjBPNJHqQSc2u+cSS9mqyAJW2JaWZoQ')
+library(shiny)
+library(rsconnect)
+# Define UI for application that draws a histogram
+ui <- fluidPage(
+
+  titlePanel(h1("hello")),
+  mainPanel(
+    numericInput("CaratInput", "Введите количество карат:", value = 0),
+    numericInput("DepthInput", "Введите Depth:", value = 0),
+    numericInput("TableInput", "Введите Table:", value = 0),
+    numericInput("XInput", "Введите ширину:", value = 0),
+    numericInput("YInput", "Введите высоту:", value = 0),
+    numericInput("ZInput", "Введите длину:", value = 0),
+    selectInput("CutValue", "Выберите огранку:",
+                choices = c("Fair", "Good", "Very Good", "Premium", "Ideal")),
+    selectInput("ClarityValue", "Выберите прозрачность:",
+                choices = c("I", "E", "J", "H", "J", "D", "F")),
+    selectInput("ColorValue", "Выберите цвет:",
+                choices = c("SI1", "SI2", "VS1", "VS2", "VVS1", "VVS2", "I1")),
+    actionButton("myButton", "Получить значение"),
+    actionButton("myButton2", "Получить значение2"),
+    
+    textOutput("output")
+  )
+)
+
+# Define server logic required to draw a histogram
+server <- function(input, output) {
+
+  observeEvent(input$myButton,  {
+    selectedCarat <- input$CaratInput
+    selectedDepth <- input$DepthInput
+    selectedTable <- input$TableInput
+    selectedX <- input$XInput
+    selectedY <- input$YInput
+    selectedZ <- input$ZInput
+    selectedCut <- input$CutValue
+    selectedClarity <- input$ClarityValue
+    selectedColor <- input$ColorValue
+    
+    
+    # Используйте значение как угодно, например, выводим его в текстовом поле
+    output$output <- renderText({
+      paste("Выбрано число:", selectedCarat)
+    })
+  })
+  
+  observeEvent(input$myButton2,  {
+    selectedCarat <- input$CaratInput
+    selectedDepth <- input$DepthInput
+    selectedTable <- input$TableInput
+    selectedX <- input$XInput
+    selectedY <- input$YInput
+    selectedZ <- input$ZInput
+    selectedCut <- input$CutValue
+    selectedClarity <- input$ClarityValue
+    selectedColor <- input$ColorValue
+    
+    
+    # Используйте значение как угодно, например, выводим его в текстовом поле
+    output$output <- renderText({
+      paste("Выбрано число:", selectedDepth)
+    })
+  })
+  
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
