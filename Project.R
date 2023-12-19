@@ -145,4 +145,38 @@ ggplot(train)+
   xlab('Depth')+
   ylab('Price')
 
-#создание случайного леса
+#Создание случайного леса
+set.seed(123)
+model0=randomForest(price~.,data=train,replace=T,ntree = 100)
+imp=importance(model0) # вычисление важности каждого признака в модели
+vars=dimnames(imp)[[1]] # извлечение имени признаков
+imp=data.frame(vars=vars,imp=as.numeric(imp[,1])) # создание DataFrame с именем признака и его важностью в модели
+imp=imp[order(imp$imp,decreasing=T),] #сортировка по убыванию важности признаков
+par(mfrow=c(1,2)) #для построения двух графиков
+varImpPlot(model0,main='Variable Importance Plot: Base Model')
+plot(model0,main='Error vs No. of trees plot: Base Model')
+#на первом графике мы видим, что важность последних трёх признаков очень мала, поэтому их можно исключить из модели
+
+#Случайный лес с важными признаками
+set.seed(123)
+selected=c(as.character(imp[1:6,1]),'price') #берём первые 6 факторов
+model1=randomForest(price ~ ., data = train[, selected], ntree = 200, mtry = 3, maxdepth = 10, nodesize = 5) #обучаем модель заново
+#добавил другие параметры, чтобы уменьшить ошибку
+par(mfrow=c(1,2))
+varImpPlot(model1,main='Variable Importance Plot: Final Model',pch=16,col='red')
+plot(model1, main='Error vs No. of trees plot: Final Model',col='red')
+
+pred=predict(object=model1,newdata=test)
+mse = mean((pred - test$price)^2)
+cat("Mean Squared Error on Test Data:", mse, "\n")
+
+actual=test$price
+result=data.frame(actual=actual,predicted=pred)
+
+ggplot(result)+
+  geom_point(aes(x=actual,y=predicted,color=predicted-actual),alpha=0.7)+
+  ggtitle('Plotting Error')
+#график фактических цен против предсказанных цен, используя цвет для отображения ошибок в предсказаниях.
+#по графику ошибок видно, что для предсказания дорогих бриллиантов ошибка возрастает
+#это связано с тем, что распределение цены имеет следующий вид
+#количесво цен до 3000$ намного больше, поэтому модель достаточно хорошо предскажет цены для простых брилиантов
