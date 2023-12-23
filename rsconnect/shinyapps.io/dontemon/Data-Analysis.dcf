@@ -5,9 +5,9 @@ account: dontemon
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 10831306
-bundleId: 8069490
+bundleId: 8078531
 url: https://dontemon.shinyapps.io/Data-Analysis/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: diamonds.xlsx|diamonds_new.xlsx|Project — копия.R|Project.R|Project_Shiny.R|Project3.R|README.md|XGBoost.rds
+ignoredFiles: .RData|app.html|diam.jpg|Diamond.png|Project — копия.R|Project.R|Project_Shiny.R|Project3.R|README.md|XGBoost.rds
