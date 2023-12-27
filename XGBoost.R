@@ -1,15 +1,16 @@
 # Библиотека ----
 
 #Пакеты
-install.packages("shiny")
-install.packages("corrplot")
-install.packages("ggplot2")
-install.packages("randomForest")
-install.packages("xgboost")
-install.packages("readr")
-install.packages("dplyr")
-install.packages("psych")
-install.packages("writexl")
+#install.packages("shiny")
+#install.packages("corrplot")
+#install.packages("ggplot2")
+#install.packages("randomForest")
+#install.packages("xgboost")
+#install.packages("readr")
+#install.packages("dplyr")
+#install.packages("psych")
+#install.packages("writexl")
+#install.packages("xlsx", dep = T) 
 
 #Подключение библиотек
 library(shiny)
@@ -21,6 +22,7 @@ library(readr)
 library(dplyr)
 library(psych)
 library(writexl)
+library(xlsx)
 
 # Очистка рабочего пространства ----
 
@@ -46,8 +48,9 @@ cat("\014")
 setwd("D:/Data-Analysis/") #установка рабочей директории
 diamonds = read.csv("diamonds.csv") #чтение данных из файла
 
+
 #переделал файл в xlsx и посмотрел все столбцы на наличие пустых и отсутствующих значений
-#write_xlsx(diamonds, "diamonds.xlsx") 
+write_xlsx(diamonds, "diamonds.xlsx") 
 #Пустых значений не обнаружено
 #Установлено, что присутствуют нулевые значения в полях X, Y, Z. Это необходимо устранить.
 
@@ -148,6 +151,8 @@ lower_bound = Q1 - 1.5 * IQR
 upper_bound = Q3 + 1.5 * IQR
 diamonds$z=replace_outliers_with_mean_exclude(diamonds$z,lower_bound,upper_bound,mean_z); boxplot(diamonds$z)
 
+diamonds=subset(diamonds, select = c("price", "carat", "cut", "color", "clarity", "depth", "table", "x", "y","z"))
+
 #Нормализация данных
 diamonds$carat = scale(diamonds$carat)
 diamonds$depth = scale(diamonds$depth)
@@ -156,3 +161,67 @@ diamonds$x = scale(diamonds$x)
 diamonds$y = scale(diamonds$y)
 diamonds$z = scale(diamonds$z)
 
+# XGBoost ----
+
+#преобразование факторов
+diamonds$cut <- as.factor(diamonds$cut)
+diamonds$color <- as.factor(diamonds$color)
+diamonds$clarity <- as.factor(diamonds$clarity)
+
+sample_size = floor(0.7 * nrow(diamonds))
+train_indices = sample(seq_len(nrow(diamonds)), size = sample_size)
+
+train = diamonds[train_indices, ]
+test = diamonds[-train_indices, ]
+
+# Создание матриц DMatrix для обучающей и тестовой выборок
+train[] <- lapply(train, as.numeric) #приводим значения столбцов обучающей выборки к числовому типу
+test[] <- lapply(test, as.numeric) #приводим значения столбцов тестовой выборки к числовому типу
+dtrain <- xgb.DMatrix(as.matrix(train[, -1]), label = train$price) #создаем матрицу для обучающей выборки, убираем первый столбец и указываем целевую переменную
+dtest <- xgb.DMatrix(as.matrix(test[, -1]), label = test$price) #создаем матрицу для тестовой выборки, убираем первый столбец и указываем целевую переменную
+train[]
+# Определение параметров модели XGBoost
+params <- list( #создаем список параметров модели
+  objective = "reg:squarederror", #целевая переменная для регрессии
+  eta = 0.01, #скорость обучения (learning rate)
+  max_depth = 6, #максимальная глубина дерева
+  min_child_weight = 1, #минимальное количество обучающих примеров в листе дерева
+  subsample = 0.8, #доля обучающих примеров, используемых для обучения каждого дерева
+  colsample_bytree = 0.8 #доля признаков, используемых для обучения каждого дерева
+)
+
+watchlist <- list(train = dtrain, valid = dtest) #список данных для отслеживания обучения
+
+# Обучение модели на обучающей выборке
+model <- xgb.train( #обучаем модель
+  params = params, #передаем параметры модели
+  data = dtrain, #передаем данные для обучения
+  nrounds = 5000, #максимальное количество итераций
+  early_stopping_rounds = 10, #количество итераций без улучшения модели, при которых обучение останавливается
+  watchlist = watchlist, #передаем список данных для отслеживания обучения
+  verbose = 0 #уровень вывода информации об обучении модели
+)
+
+predictions = predict(model, newdata = dtest)
+rmse3 = sqrt(mean((test$price - predictions)^2))
+cat("RMSE: ", rmse3, "\n")
+
+means = read.xlsx("means.xlsx", sheetIndex = 1) 
+sds = read.xlsx("sds.xlsx", sheetIndex = 1) 
+
+new_data = data.frame(carat = 1.26, cut = "Ideal", color = "G",	clarity = "VVS2",	depth=60.7,	table=56,	x=7.05, y=7.03,	z=4.27) #22520 строка Лучший результат 10581.99
+new_data$carat = (new_data$carat - means$carat) / sds$carat 
+new_data$depth = (new_data$depth - means$depth) / sds$depth 
+new_data$table = (new_data$table - means$table) / sds$table 
+new_data$x = (new_data$x - means$x) / sds$x 
+new_data$y = (new_data$y - means$y) / sds$y 
+new_data$z = (new_data$z - means$z) / sds$z
+new_data$cut <- as.numeric(as.factor(new_data$cut))
+new_data$color <- as.numeric(as.factor(new_data$color))
+new_data$clarity <- as.numeric(as.factor(new_data$clarity))
+colnames(new_data) <- colnames(train)[2:10]
+dnew <- xgb.DMatrix(as.matrix(new_data))
+new_price <- predict(model, dnew)
+new_price
+
+saveRDS(model, file = "XGBoost.rds")
