@@ -45,63 +45,108 @@ cat("\014")
 
 setwd("D:/Data-Analysis/") #установка рабочей директории
 diamonds = read.csv("diamonds.csv") #чтение данных из файла
+
+#переделал файл в xlsx и посмотрел все столбцы на наличие пустых и отсутствующих значений
 #write_xlsx(diamonds, "diamonds.xlsx") 
+#Пустых значений не обнаружено
+#Установлено, что присутствуют нулевые значения в полях X, Y, Z. Это необходимо устранить.
+
+mean_carat=mean(diamonds$carat)
+mean_depth=mean(diamonds$depth)
+mean_table=mean(diamonds$table)
+mean_x=mean(diamonds$x)
+mean_y=mean(diamonds$y)
+mean_z=mean(diamonds$y)
 
 #Заполнение нулевых значений средними значениями
 diamonds = diamonds %>%
-  mutate(x = ifelse(x == 0, mean(x[x != 0], na.rm = TRUE), x),
-         y = ifelse(y == 0, mean(y[y != 0], na.rm = TRUE), y),
-         z = ifelse(z == 0, mean(z[z != 0], na.rm = TRUE), z))
+  mutate(x = ifelse(x == 0, mean_x, x),
+         y = ifelse(y == 0, mean_y, y),
+         z = ifelse(z == 0, mean_z, z))
 
 #удаление первого столбца (индексация)
-diamonds = diamonds %>% 
-  select(-1)
+diamonds = diamonds %>% select(-1)
 
 #удаление дубликатов
-diamonds = diamonds %>% 
-  filter(!duplicated(.))
+diamonds = diamonds %>% filter(!duplicated(.))
 
-replace_outliers_with_mean_exclude = function(column) {
-  Q1 = quantile(column, 0.25)
-  Q3 = quantile(column, 0.75)
-  IQR = Q3 - Q1
-  lower_bound = Q1 - 1.5 * IQR
-  upper_bound = Q3 + 1.5 * IQR
-  
-  # Определение выбросов
-  outliers = column < lower_bound | column > upper_bound
-  
-  # Замена выбросов на среднее значение, исключая выбросы
-  column[outliers] = mean(column, na.rm = TRUE)
-  
+replace_outliers_with_mean_exclude = function(column,lower,upper,mean) {
+  outliers = column < lower | column > upper
+  column[outliers] = mean
   return(column)
 }
 
-#В данных очень много выбросов
 boxplot(diamonds$carat)
-diamonds$carat=replace_outliers_with_mean_exclude(diamonds$carat); boxplot(diamonds$carat)
-diamonds$carat=replace_outliers_with_mean_exclude(diamonds$carat); boxplot(diamonds$carat)
+Q1 = quantile(diamonds$carat, 0.25)
+Q3 = quantile(diamonds$carat, 0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+diamonds$carat=replace_outliers_with_mean_exclude(diamonds$carat,lower_bound,upper_bound,mean_carat); boxplot(diamonds$carat)
+Q1 = quantile(diamonds$carat, 0.25)
+Q3 = quantile(diamonds$carat, 0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+diamonds$carat=replace_outliers_with_mean_exclude(diamonds$carat,lower_bound,upper_bound,mean_carat); boxplot(diamonds$carat)
 
 boxplot(diamonds$depth)
-diamonds$depth=replace_outliers_with_mean_exclude(diamonds$depth); boxplot(diamonds$depth)
-diamonds$depth=replace_outliers_with_mean_exclude(diamonds$depth); boxplot(diamonds$depth)
-diamonds$depth=replace_outliers_with_mean_exclude(diamonds$depth); boxplot(diamonds$depth)
-diamonds$depth=replace_outliers_with_mean_exclude(diamonds$depth); boxplot(diamonds$depth)
+Q1 = quantile(diamonds$depth, 0.25)
+Q3 = quantile(diamonds$depth, 0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+diamonds$depth=replace_outliers_with_mean_exclude(diamonds$depth,lower_bound,upper_bound,mean_depth); boxplot(diamonds$depth)
+Q1 = quantile(diamonds$depth, 0.25)
+Q3 = quantile(diamonds$depth, 0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+diamonds$depth=replace_outliers_with_mean_exclude(diamonds$depth,lower_bound,upper_bound,mean_depth); boxplot(diamonds$depth)
+Q1 = quantile(diamonds$depth, 0.25)
+Q3 = quantile(diamonds$depth, 0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+diamonds$depth=replace_outliers_with_mean_exclude(diamonds$depth,lower_bound,upper_bound,mean_depth); boxplot(diamonds$depth)
+Q1 = quantile(diamonds$depth, 0.25)
+Q3 = quantile(diamonds$depth, 0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+diamonds$depth=replace_outliers_with_mean_exclude(diamonds$depth,lower_bound,upper_bound,mean_depth); boxplot(diamonds$depth)
 
 boxplot(diamonds$table)
-diamonds$table=replace_outliers_with_mean_exclude(diamonds$table); boxplot(diamonds$table)
+Q1 = quantile(diamonds$table, 0.25)
+Q3 = quantile(diamonds$table, 0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+diamonds$table=replace_outliers_with_mean_exclude(diamonds$table,lower_bound,upper_bound,mean_table); boxplot(diamonds$table)
 
 boxplot(diamonds$x)
-diamonds$x=replace_outliers_with_mean_exclude(diamonds$x); boxplot(diamonds$x)
+Q1 = quantile(diamonds$x, 0.25)
+Q3 = quantile(diamonds$x, 0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+diamonds$x=replace_outliers_with_mean_exclude(diamonds$x,lower_bound,upper_bound,mean_x); boxplot(diamonds$x)
 
 boxplot(diamonds$y)
-diamonds$y=replace_outliers_with_mean_exclude(diamonds$y); boxplot(diamonds$y)
+Q1 = quantile(diamonds$y, 0.25)
+Q3 = quantile(diamonds$y, 0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+diamonds$y=replace_outliers_with_mean_exclude(diamonds$y,lower_bound,upper_bound,mean_y); boxplot(diamonds$y)
 
 boxplot(diamonds$z)
-diamonds$z=replace_outliers_with_mean_exclude(diamonds$z); boxplot(diamonds$z)
-
-#Вывод информации о типе и структуре данных
-str(diamonds); summary(diamonds)
+Q1 = quantile(diamonds$z, 0.25)
+Q3 = quantile(diamonds$z, 0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+diamonds$z=replace_outliers_with_mean_exclude(diamonds$z,lower_bound,upper_bound,mean_z); boxplot(diamonds$z)
 
 #Сохранение средних и среднекв.отклонений (для нормализации введенных данных в приложении)
 means = colMeans(diamonds[, c("carat", "depth", "table", "x", "y", "z")])
@@ -169,7 +214,7 @@ train_indices = sample(seq_len(nrow(diamonds)), size = sample_size)
 train = diamonds[train_indices, ]
 test = diamonds[-train_indices, ]
 
-#Исследовательские графики
+#Исследовательские графики ----
 
 #График, показывающий распределение цен в зависимости от качества огранки и цвета бриллиантов
 ggplot(train)+
@@ -208,6 +253,8 @@ ggplot(train)+
   geom_point(aes(y=price,x=depth,color=cut))+
   xlab('Depth')+
   ylab('Price')
+
+# Random Forest ----
 
 # Определение зависимой переменной
 response_variable <- "price"
@@ -256,9 +303,7 @@ new_data$color = factor(new_data$color, levels = levels(diamonds$color))
 new_data$clarity = factor(new_data$clarity, levels = levels(diamonds$clarity))
 new_data$cut = factor(new_data$cut, levels = levels(diamonds$cut))
 prediction = predict(rf_model, new_data)
-prediction 
+prediction
 
 saveRDS(rf_model, file = "RandomForest.rds")
-#loadedModel <- readRDS("RandomForest.rds")
 
-# XGBoost ----
