@@ -51,7 +51,6 @@ cat("\014")
 setwd("D:/Data-Analysis/") #установка рабочей директории
 diamonds = read.csv("diamonds.csv") #чтение данных из файла
 
-
 #переделал файл в xlsx и посмотрел все столбцы на наличие пустых и отсутствующих значений
 write_xlsx(diamonds, "diamonds.xlsx") 
 #Пустых значений не обнаружено
@@ -153,28 +152,53 @@ IQR = Q3 - Q1
 lower_bound = Q1 - 1.5 * IQR
 upper_bound = Q3 + 1.5 * IQR
 diamonds$z=replace_outliers_with_mean_exclude(diamonds$z,lower_bound,upper_bound,mean_z); boxplot(diamonds$z)
-diamonds
 
-diamonds <- diamonds %>% 
-  mutate(cut = factor(cut),
-         color = factor(color),
-         clarity = factor(clarity))
+diamonds$carat = scale(diamonds$carat)
+diamonds$depth = scale(diamonds$depth)
+diamonds$table = scale(diamonds$table)
+diamonds$x = scale(diamonds$x)
+diamonds$y = scale(diamonds$y)
+diamonds$z = scale(diamonds$z)
 
-sample_size = floor(0.7 * nrow(diamonds))
-train_indices = sample(seq_len(nrow(diamonds)), size = sample_size)
+#install.packages("caret")
+#library(caret)
 
-train = diamonds[train_indices, ]
-test = diamonds[-train_indices, ]
+# Создание факторов для категориальных переменных
+diamonds$cut <- as.factor(diamonds$cut)
+diamonds$color <- as.factor(diamonds$color)
+diamonds$clarity <- as.factor(diamonds$clarity)
 
-# Выбор количества ближайших соседей (k)
-k_neighbors <- 5
+# Определение обучающего и тестового наборов
+sample_size <- floor(0.7 * nrow(diamonds))
+train_indices <- sample(seq_len(nrow(diamonds)), size = sample_size)
+train <- diamonds[train_indices, ]
+test <- diamonds[-train_indices, ]
 
-# Обучение модели k-NN
-knn_model <- knn(train = train[, -7], test = test[, -7], cl = train$price, k = k_neighbors)
+# Построение модели k ближайших соседей
+k <- 1
+knn_model <- knn(train = train[, c("carat", "depth", "table", "x", "y", "z")],
+                 test = test[, c("carat", "depth", "table", "x", "y", "z")],
+                 cl = train$price,
+                 k = k)
 
-# Предсказание на тестовом наборе
-predictions_knn <- as.numeric(knn_model)
-rmse_knn <- sqrt(mean((test$price - predictions_knn)^2))
-cat("k-NN RMSE: ", rmse_knn, "\n")
+means = read.xlsx("means.xlsx", sheetIndex = 1) 
+sds = read.xlsx("sds.xlsx", sheetIndex = 1) 
 
-saveRDS(tr_model, file = "Kmeans.rds")
+# Оценка точности модели
+new_data = data.frame(carat = 1.26, cut = "Ideal", color = "G",	clarity = "VVS2",	depth=60.7,	table=56,	x=7.05, y=7.03,	z=4.27)
+new_data$carat = (new_data$carat - means$carat) / sds$carat 
+new_data$depth = (new_data$depth - means$depth) / sds$depth 
+new_data$table = (new_data$table - means$table) / sds$table 
+new_data$x = (new_data$x - means$x) / sds$x 
+new_data$y = (new_data$y - means$y) / sds$y 
+new_data$z = (new_data$z - means$z) / sds$z
+new_data$cut <- as.factor(new_data$cut)
+new_data$color <- as.factor(new_data$color)
+new_data$clarity <- as.factor(new_data$clarity)
+
+predicted_price <- knn(train = train[, c("carat", "depth", "table", "x", "y", "z")],
+                       test = new_data[, c("carat", "depth", "table", "x", "y", "z")],
+                       cl = train$price,
+                       k = k)
+cat("Predicted Price:", predicted_price, "\n")
+saveRDS(predicted_price, file = "Kmeans.rds")
