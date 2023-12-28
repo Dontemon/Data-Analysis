@@ -14,7 +14,7 @@
     text-align: center;
 }
 
-#myButton, #myButton2, #myButton3, #myButton4{
+#myButton, #myButton2, #myButton3, #myButton4, #myButton5{
     font-size:18px;
     background-color: white;
     width: 200px;
@@ -22,12 +22,12 @@
     border-radius: 60px; 
     border: 2px solid rgb(173, 173, 173);
 }
-#myButton:hover, #myButton2:hover, #myButton3:hover, #myButton4:hover{
+#myButton:hover, #myButton2:hover, #myButton3:hover, #myButton4:hover, #myButton5:hover{
     background-color: rgb(224, 224, 224);
     cursor: pointer;
 }
 
-#myButton:active, #myButton2:active, #myButton3:active, #myButton4:active{
+#myButton:active, #myButton2:active, #myButton3:active, #myButton4:active, #myButton5:active{
     background-color: rgb(190, 190, 190);
 }
 
